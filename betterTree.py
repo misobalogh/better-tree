@@ -28,6 +28,10 @@ class Leaf:
         connector = '└──' if is_last else '├──'
         print(f"{prefix}{connector}{self.name}")
 
+    def displayFancy(self):
+        pass
+
+
 
 class Tree(Leaf):
     """
@@ -60,6 +64,47 @@ class Tree(Leaf):
             is_last_child = index == len(self.children) - 1
             child.display(depth + 1, is_last_child, prefix)
 
+    def displayFancy(self):
+        dirs = [dir for dir in self.children if isinstance(dir, Tree)]
+        files = [file for file in self.children if isinstance(file, Leaf) and not isinstance(file, Tree)]
+
+        max_fn = 7
+        for file in files:
+            if len(file.name) > max_fn:
+                file.name = file.name[:max_fn-2] + ".."
+
+            file.name = file.name.center(max_fn)
+            print(f"{file.name} ", end="")
+        print()
+
+        padding = max_fn // 2
+
+        column_pattern = f"{' ' * padding}│{' ' * padding} "
+
+        file_count = len(files)
+        # vertical branch
+        print(column_pattern * file_count)
+        print(column_pattern * file_count)
+
+        # connect them together
+        if file_count == 1:
+            connection_pattern = f"{' ' * padding}│{'─'*padding}"
+        elif file_count == 2:
+            connection_pattern = f"{' ' * padding}└{'─'*max_fn}{'┤'} "
+        else:
+            middle_pattern = ('┴'+'─'*max_fn)
+            connection_pattern = f"{' ' * padding}└{'─'*max_fn}{middle_pattern*int(file_count/2-1)}┼{middle_pattern[::-1]*int((file_count-1)/2-1)}{'─'*max_fn}{'┘'} "
+        print(connection_pattern)
+
+        # TODO: finish the fancy tree, push files onto stack and pop them off to display them in the correct order
+
+        for dir in dirs:
+            print(f"{dir.name}/")
+            dir.displayFancy()
+
+    def displayPyramid(self):
+        pass
+
     def createTree(self, path: str, depth: int, hidden=False):
         """
         Creates a tree structure of the given path with the given depth.
@@ -84,4 +129,8 @@ class Tree(Leaf):
 
 if __name__ == "__main__":
     root = Tree(args.path)
-    root.createTree(args.path, args.depth, args.all).display()
+    root.createTree(args.path, args.depth, args.all)
+    if args.fancy:
+        root.displayFancy()
+    else:
+        root.display()
